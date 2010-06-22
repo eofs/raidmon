@@ -20,6 +20,9 @@ Contact information:
 by email: tomip86@gmail.com
 */
 
+#include <QDBusConnection>
+#include <QDBusInterface>
+
 #include "raidmon.h"
 #include "ui_raidmon.h"
 
@@ -191,8 +194,17 @@ void RaidMon::readRaidStatus()
     }
 
     // Change icon & tooltip
-    if (hasErrors)
+    if (hasErrors) {
         emit status(true, tr("Error!"), messages);
+
+        // Send message to knotify via D-Bus
+        if (QDBusConnection::sessionBus().isConnected()) {
+            QList<QVariant> args;
+            args << "warning" << "kde" << QVariant::List << "RAID error detected!" << message << QVariant::ByteArray << QVariant::StringList << 5000 << QVariant::LongLong;
+            QDBusInterface dbus_iface("org.kde.knotify", "/Notify", "org.kde.KNotify");
+            dbus_iface.callWithArgumentList(QDBus::AutoDetect, "event", args);
+        }
+    }
     // If previously had errors but now everything is OK change icon back to normal
     if (!hasErrors && !statusClean) {
         statusClean = true;

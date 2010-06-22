@@ -6,7 +6,7 @@
 
 TARGET = RaidMon
 TEMPLATE = app
-
+CONFIG += qdbus
 
 SOURCES += main.cpp\
         raidmon.cpp
@@ -15,4 +15,4 @@ HEADERS  += raidmon.h
 
 FORMS    += raidmon.ui
 
-DEFINES += QT_NO_DEBUG_OUTPUT
+#DEFINES += QT_NO_DEBUG_OUTPUT
