@@ -62,6 +62,7 @@ private:
     bool statusClean;
     QStringList devices;
     int updateInternval;
+    bool useKDENotifications;
     QTimer *timer;
 
     // Actions

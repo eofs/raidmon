@@ -29,7 +29,8 @@ by email: tomip86@gmail.com
 RaidMon::RaidMon(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RaidMon),
-    statusClean(false)
+    statusClean(false),
+    useKDENotifications(true)
 {
     ui->setupUi(this);
 
@@ -80,6 +81,9 @@ void RaidMon::setupExtra()
     ui->textDevices->setPlainText(devices.join("\n"));
     ui->spinInterval->setMinimum(1);
     ui->spinInterval->setValue(updateInternval);
+    ui->checkKDENotifications->setChecked(useKDENotifications);
+
+
 
 }
 
@@ -114,6 +118,7 @@ void RaidMon::loadSettings()
     QSettings settings("RaidMon","RaidMon");
     devices = settings.value("devices").value<QStringList>();
     updateInternval = settings.value("interval", 10).toInt();
+    useKDENotifications = settings.value("kdenotifications", true).toBool();
 }
 
 void RaidMon::saveSettings()
@@ -121,6 +126,7 @@ void RaidMon::saveSettings()
     QSettings settings("RaidMon", "RaidMon");
     settings.setValue("devices", devices);
     settings.setValue("interval", ui->spinInterval->value());
+    settings.setValue("kdenotifications", useKDENotifications);
 }
 
 void RaidMon::showAbout()
@@ -137,6 +143,7 @@ void RaidMon::accept()
         devices.clear();
     updateInternval = ui->spinInterval->value();
     timer->start(1000 * updateInternval);
+    useKDENotifications = ui->checkKDENotifications->isChecked();
 
     // Save form values
     saveSettings();
@@ -199,7 +206,7 @@ void RaidMon::readRaidStatus()
         emit status(true, tr("Error!"), messages);
 
         // Send message to knotify via D-Bus
-        if (QDBusConnection::sessionBus().isConnected()) {
+        if (QDBusConnection::sessionBus().isConnected() && useKDENotifications) {
             QList<QVariant> args;
             args << "warning" << "kde" << QVariant::List << "RAID error detected!" << message << QVariant::ByteArray << QVariant::StringList << 5000 << QVariant::LongLong;
             QDBusInterface dbus_iface("org.kde.knotify", "/Notify", "org.kde.KNotify");
