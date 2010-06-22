@@ -195,6 +195,7 @@ void RaidMon::readRaidStatus()
 
     // Change icon & tooltip
     if (hasErrors) {
+        statusClean = false;
         emit status(true, tr("Error!"), messages);
 
         // Send message to knotify via D-Bus
@@ -204,9 +205,8 @@ void RaidMon::readRaidStatus()
             QDBusInterface dbus_iface("org.kde.knotify", "/Notify", "org.kde.KNotify");
             dbus_iface.callWithArgumentList(QDBus::AutoDetect, "event", args);
         }
-    }
-    // If previously had errors but now everything is OK change icon back to normal
-    if (!hasErrors && !statusClean) {
+    } else if(!statusClean) {
+        // If previously had errors but now everything is OK change icon back to normal
         statusClean = true;
         emit status(false, tr("Good!"), messages);
     }
