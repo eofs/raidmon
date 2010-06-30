@@ -131,7 +131,7 @@ void RaidMon::saveSettings()
 
 void RaidMon::showAbout()
 {
-    QMessageBox::information(this, tr("About"), tr("RaidMon - RAID monitoring utility\nAuthor: Tomi Pajunen\nVersion: 0.1"));
+    QMessageBox::information(this, tr("About"), tr("RaidMon - RAID monitoring utility\nAuthor: Tomi Pajunen\nVersion: %1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_REVISION));
 }
 
 void RaidMon::accept()
@@ -175,7 +175,7 @@ void RaidMon::readRaidStatus()
     QStringList allowedStatuses;
     QStringList messages;
     QString message;
-    allowedStatuses << "active" << "clean" << "write-pending";
+    allowedStatuses << "active" << "active-idle" << "clean" << "write-pending";
 
     foreach (QString dev, devices) {
         QString dir(QString("/sys/block/%1/md/").arg(dev.split("/").last()));
