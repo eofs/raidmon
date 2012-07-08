@@ -175,7 +175,8 @@ void RaidMon::readRaidStatus()
     QStringList allowedStatuses;
     QStringList messages;
     QString message;
-    allowedStatuses << "active" << "active-idle" << "clean" << "write-pending";
+    // See http://www.kernel.org/doc/Documentation/md.txt for state documentation
+    allowedStatuses << "active" << "active-idle" << "clean" << "write-pending" << "read-auto";
 
     foreach (QString dev, devices) {
         QString dir(QString("/sys/block/%1/md/").arg(dev.split("/").last()));
