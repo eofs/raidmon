@@ -20,8 +20,8 @@ Contact information:
 by email: tomip86@gmail.com
 */
 
-#include <QtGui/QApplication>
 #include "raidmon.h"
+#include <QApplication>
 
 int main(int argc, char *argv[])
 {

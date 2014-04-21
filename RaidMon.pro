@@ -4,9 +4,12 @@
 #
 #-------------------------------------------------
 
+QT      += core gui dbus
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
 TARGET = RaidMon
 TEMPLATE = app
-CONFIG += qdbus
 
 SOURCES += main.cpp\
         raidmon.cpp
