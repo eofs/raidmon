@@ -12,9 +12,11 @@ TARGET = RaidMon
 TEMPLATE = app
 
 SOURCES += main.cpp\
-        raidmon.cpp
+        raidmon.cpp \
+        scanner.cpp
 
-HEADERS  += raidmon.h
+HEADERS  += raidmon.h \
+            scanner.h
 
 FORMS    += raidmon.ui
 

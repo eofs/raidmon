@@ -39,6 +39,8 @@ by email: tomip86@gmail.com
 #include <QStringList>
 #include <QSettings>
 
+#include "scanner.h"
+
 namespace Ui {
     class RaidMon;
 }
@@ -64,10 +66,12 @@ private:
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
     bool statusClean;
-    QStringList devices;
     int updateInternval;
     bool useKDENotifications;
     QTimer *timer;
+
+    // Utilities
+    Scanner *scanner;
 
     // Actions
     QAction *quitAction;

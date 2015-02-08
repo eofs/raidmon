@@ -34,6 +34,8 @@ RaidMon::RaidMon(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    scanner = new Scanner(this);
+
     // Do some extra initialization
     setupExtra();
 
@@ -77,14 +79,9 @@ void RaidMon::setupExtra()
     connect(this, SIGNAL(status(bool,QString,QStringList)), this, SLOT(setTrayIconStatus(bool,QString,QStringList)));
 
     // Set UI items
-    ui->textDevices->setLineWrapMode(QPlainTextEdit::NoWrap);
-    ui->textDevices->setPlainText(devices.join("\n"));
     ui->spinInterval->setMinimum(1);
     ui->spinInterval->setValue(updateInternval);
     ui->checkKDENotifications->setChecked(useKDENotifications);
-
-
-
 }
 
 void RaidMon::createActions()
@@ -116,7 +113,6 @@ void RaidMon::createTrayIcon()
 void RaidMon::loadSettings()
 {
     QSettings settings("RaidMon","RaidMon");
-    devices = settings.value("devices").value<QStringList>();
     updateInternval = settings.value("interval", 10).toInt();
     useKDENotifications = settings.value("kdenotifications", true).toBool();
 }
@@ -124,7 +120,6 @@ void RaidMon::loadSettings()
 void RaidMon::saveSettings()
 {
     QSettings settings("RaidMon", "RaidMon");
-    settings.setValue("devices", devices);
     settings.setValue("interval", ui->spinInterval->value());
     settings.setValue("kdenotifications", useKDENotifications);
 }
@@ -137,10 +132,6 @@ void RaidMon::showAbout()
 void RaidMon::accept()
 {
     // Use new values
-    if (ui->textDevices->toPlainText().count() > 0)
-        devices = ui->textDevices->toPlainText().split("\n");
-    else
-        devices.clear();
     updateInternval = ui->spinInterval->value();
     timer->start(1000 * updateInternval);
     useKDENotifications = ui->checkKDENotifications->isChecked();
@@ -159,50 +150,36 @@ void RaidMon::reject()
     this->hide();
 
     // Reset form values
-    ui->textDevices->setPlainText(devices.join("\n"));
     ui->spinInterval->setValue(updateInternval);
-
 }
 
 void RaidMon::readRaidStatus()
 {
-    if (devices.size() == 0) {
-        emit status(true, "Configuration error.", QStringList() << "No devices configured.");
-        return;
-    }
-
-    bool hasErrors = false;
     QStringList allowedStatuses;
     QStringList messages;
     QString message;
+
     // See http://www.kernel.org/doc/Documentation/md.txt for state documentation
-    allowedStatuses << "active" << "active-idle" << "clean" << "write-pending" << "read-auto";
+    allowedStatuses << "active"
+                    << "active-idle"
+                    << "clean"
+                    << "write-pending"
+                    << "read-auto";
 
-    foreach (QString dev, devices) {
-        QString dir(QString("/sys/block/%1/md/").arg(dev.split("/").last()));
-        QFile statusFile(dir + "array_state");
+    QList<RaidDev> devs = scanner->get_devices();
+    QList<RaidDev> errDevs;
 
-        if (statusFile.open(QIODevice::ReadOnly)) {
-            QByteArray status(statusFile.readLine());
-            status = status.trimmed();
-            if (allowedStatuses.contains(status)) {
-                message = QString("Device: %1 - %2").arg(dev).arg(QString(status));
-                qDebug() << message;
-            } else {
-                hasErrors = true;
-                message = QString("Device: %1 - Invalid status '%2' detected!").arg(dev).arg(QString(status));
-                qDebug() << message;
-            }
+    foreach (RaidDev dev, devs) {
+        if (allowedStatuses.contains(dev.state)) {
+            message = QString("Device: %1 - %2").arg(dev.name).arg(dev.state);
         } else {
-            hasErrors = true;
-            message = QString("Could not open file %1").arg(statusFile.fileName());
-            qDebug() << message;
+            errDevs.append(dev);
         }
-        messages << message;
+        qDebug() << message;
+        messages.append(message);
     }
 
-    // Change icon & tooltip
-    if (hasErrors) {
+    if (errDevs.count()) {
         statusClean = false;
         emit status(true, tr("Error!"), messages);
 
